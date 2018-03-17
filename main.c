@@ -6,14 +6,14 @@
 
 enum finite_Machine_states {
     EXIT = 0,
-    state1 = 1,
-    state2 = 2,
-    state3 = 3,
-    state4 = 4,
-    state5 = 5,
-    state9 = 9,
-    idle_state1 = -1,
-    idle_state2 = -2
+    createNew = 1,
+    read = 2,
+    add = 3,
+    del = 4,
+    find = 5,
+    Back2Main = 6,
+    Back2SubMenu = -2,
+    idle_state1 = -1
 };
 enum permissions {
     yes = 'y', no = 'n', z_state = 'z'
@@ -22,23 +22,26 @@ enum permissions {
 //typedef unsigned char HashType;
 typedef unsigned int HashType;
 
-typedef struct datesPattern {
+typedef struct {
     unsigned int year;
     unsigned int day;
     unsigned int month;
 } publishingDate;
+
 typedef struct booksPattern {
     HashType hash;
     char author[LENGTH];
     char title[LENGTH];
-    struct datesPattern *date;
+    publishingDate *date;
     unsigned int pagesQuantity;
     struct booksPattern *next;
     struct booksPattern *prev;
 } Book;
 
 Book *TABLE[TABLE_SIZE];
+
 FILE *fptr;
+
 int currentState;
 char permission;
 HashType hashIndex;
@@ -77,13 +80,16 @@ HashType HashIndex(HashType hash);
 void clearTable();
 
 int main() {
+
+    for (int j = 0; j <TABLE_SIZE ; ++j) TABLE[j]=NULL;
+
     void (*Action[6])();
-    Action[state1] = act_create_library;
-    Action[state2] = act_read_from_library;
-    Action[state3] = act_book_add;
-    Action[state4] = act_book_del;
-    Action[state5] = act_book_find;
-    Action[state9] = act_mainMenu;
+    Action[createNew] = act_create_library;
+    Action[read] = act_read_from_library;
+    Action[add] = act_book_add;
+    Action[del] = act_book_del;
+    Action[find] = act_book_find;
+    Action[Back2Main] = act_mainMenu;
 
     currentState = idle_state1;
     while (1) {
@@ -92,16 +98,22 @@ int main() {
             scanf("%d", &currentState);
             (*Action[currentState])();
         }
-        if (currentState == idle_state2) {
-            currentState = idle_state1;
+        if (currentState == Back2SubMenu) {
             act_subMenu();
             scanf("%d", &currentState);
             (*Action[currentState])();
         }
         if (currentState == EXIT) break;
     }
-    printf("\nProgram was closed\n");
+
     clearTable();
+    for (int i = 0; i <6 ; ++i) {
+        Action[i]=NULL;
+    }
+
+    fptr=NULL;
+
+    printf("\nProgram was closed\n");
     return 0;
 }
 
@@ -121,6 +133,7 @@ void act_subMenu() {
     printf("====================================================\n");
 }
 
+
 void act_create_library() {
     fptr = fopen("BooksLibrary.txt", "w");
     printf("\nFile BooksLibrary.txt was created\n"
@@ -128,9 +141,8 @@ void act_create_library() {
     scanf("%s", &permission);
     if (permission == yes) {
         permission = z_state;
-        clearTable();
+        currentState = Back2SubMenu;
         act_book_add();
-        currentState = idle_state2;
     }
     if (permission == no) {
         permission = z_state;
@@ -139,7 +151,7 @@ void act_create_library() {
 }
 
 void act_read_from_library() {
-//    printf("act_showLibrary -> 1st state\n");
+
     if ((fptr = fopen("BooksLibrary.txt", "r")) == NULL) {
         printf("----------------------------------------------------\n");
         printf("Error! opening file. Perhaps file doesn't exist\n");
@@ -157,15 +169,15 @@ void act_read_from_library() {
     } else {
         readListFromLibrary();
         displayList();
-        currentState = idle_state2;
+        currentState = Back2SubMenu;
     }
 }
 
 void displayList() {
     Book *swap = NULL;
-    for (int i = 0; i < TABLE_SIZE; ++i) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
         swap = TABLE[i];
-        if (swap == NULL) continue;
+//        if (swap == NULL) continue;
         while (swap != NULL) {
             printf("Book #%d\n", i);
             printf("Author: %s\n", swap->author);
@@ -176,8 +188,9 @@ void displayList() {
             printf("====================================================\n");
             swap = swap->next;
         }
-        free(swap);
     }
+    free(swap);
+    printf("sds");
 }
 
 void writeBooksList2File() {
@@ -194,8 +207,8 @@ void writeBooksList2File() {
             fprintf(fptr, "%u\t%u\t%u\n", temp->date->day, temp->date->month, temp->date->year);
             temp = temp->next;
         }
-        free(temp);
     }
+    free(temp);
     fclose(fptr);
 }
 
@@ -229,9 +242,6 @@ void readListFromLibrary() {
     } while (eof == 0);
 
     fclose(fptr);
-    free(p);
-    free(temp);
-    free(prevBook);
 }
 
 void createBooksList() {
@@ -275,17 +285,9 @@ void createBooksList() {
         scanf("%s", &permission);
         if (permission == no)break;
     }
-    free(p);
-    free(temp);
-    free(prevBook);
 }
 
 void delete_book_from_list() {
-    /*
-     * According function act_book_find() we get to structure which we want to delete.
-     * So we need to redefine next and revious link in previous and next strucrures, and we should exeptions,
-     * when this structure is first or last possition in this TABLE[hashIndex] list
-     * */
     Book *nextBook;
     Book *prevBook;
     if (TABLE[hashIndex]->next == NULL){
@@ -305,14 +307,13 @@ void delete_book_from_list() {
         nextBook->prev = prevBook;
         free(TABLE[hashIndex]);
     }
-//    free(nextBook);
-//    free(prevBook);
     currentState = idle_state1;
 }
 
 void act_book_add() {
     createBooksList();
     writeBooksList2File();
+    displayList();
     currentState = idle_state1;
 }
 
@@ -336,7 +337,6 @@ void act_book_find() {
 
     hashIndex = 0;
     char title[LENGTH];
-
     readListFromLibrary();
 
     printf("\nPlease, enter book's title: ");
@@ -345,15 +345,23 @@ void act_book_find() {
     hash = Hash(title);
     hashIndex = HashIndex(hash);
 
-    if (TABLE[hashIndex] == NULL)
-        printf("Book wasn't found\n");
+    if (TABLE[hashIndex] == NULL) printf("Book wasn't found\n");
 
     while (TABLE[hashIndex] != NULL) {
         if (TABLE[hashIndex]->hash == hash) {
             printf("\n The book with title \'%s\' was found\n"
                            "Do you want to look all information about it? y/n\n", title);
             if (scanf("%c", &permission) == yes) {
-                displayList();
+                printf("Book #%d\n", hash);
+                printf("Author: %s\n", TABLE[hashIndex]->author);
+                printf("Title: %s\n", TABLE[hashIndex]->title);
+                printf("HASH: %u\n", TABLE[hashIndex]->hash);
+                printf("Pages: %u\n", TABLE[hashIndex]->pagesQuantity);
+                printf("Date: %u/%u/%u\n",
+                       TABLE[hashIndex]->date->day,
+                       TABLE[hashIndex]->date->month,
+                       TABLE[hashIndex]->date->year);
+                printf("====================================================\n");
                 break;
             }
         }
@@ -383,7 +391,9 @@ HashType HashIndex(HashType hash) {
 
 void clearTable() {
     for (int i = 0; i < TABLE_SIZE; ++i) {
+//        free(TABLE[i]);
         TABLE[i] = NULL;
-        free(TABLE[i]);
+//        free(TABLE[i]->date);
+        TABLE[i]->date = NULL;
     }
 }
