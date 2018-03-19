@@ -138,7 +138,7 @@ void act_subMenu() {
 }
 
 void act_create_library() {
-    fptr = fopen("BooksLibrary.txt", "r+");
+    fptr = fopen("BooksLibrary.txt", "w+");
     fclose(fptr);
     fptr=NULL;
     printf("\nFile BooksLibrary.txt was created\n"
@@ -195,11 +195,11 @@ void displayList() {
             swap = swap->next;
         }
     }
+//    free(swap);
     swap = NULL;
 }
 
 void writeBooksList2File() {
-//    fptr = fopen("BooksLibrary.txt", "r+");
     Book *temp = NULL;
     for (int i = 0; i < TABLE_SIZE; ++i) {
         temp = TABLE[i];
@@ -212,9 +212,8 @@ void writeBooksList2File() {
             temp = temp->next;
         }
     }
+//    free(temp);
     temp = NULL;
-//    fclose(fptr);
-//    fptr = NULL;
 }
 
 void readListFromLibrary() {
@@ -232,10 +231,10 @@ void readListFromLibrary() {
                    &temp->date->month, &temp->date->year) == EOF) {
             eof = 1;
         }
-        temp->next = NULL;
-        temp->prev = prevBook;
-        prevBook = temp;
         hashIndex = HashIndex(temp->hash);
+        temp->next = NULL;
+        temp->prev = NULL;
+
         if (TABLE[hashIndex] == NULL) { // if list currently empty as first Book
             TABLE[hashIndex] = temp;
         } else {
@@ -244,6 +243,7 @@ void readListFromLibrary() {
                 p = p->next;
             }
             p->next = temp;
+            p->next->prev = p;
         }
     } while (eof == 0);
     prevBook = NULL;
@@ -257,6 +257,7 @@ void createBooksList() {
     Book *temp = NULL;
     Book *p = NULL;
     permission = yes;
+
     while (permission == yes) {
         permission = z_state;
         //individual isolated node
@@ -276,8 +277,7 @@ void createBooksList() {
         hashIndex = HashIndex(temp->hash);
 
         temp->next = NULL;
-        temp->prev = prevBook;
-        prevBook = temp;
+        temp->prev = NULL;
 
         if (TABLE[hashIndex] == NULL) { // if list currently empty as first Book
             TABLE[hashIndex] = temp;
@@ -287,48 +287,56 @@ void createBooksList() {
                 p = p->next;
             }
             p->next = temp;
+            p->next->prev = p;
         }
         printf("\nWould you like to add one more book? y/n\n");
         if (scanf("%s", &permission) == no)break;
     }
     permission = z_state;
+//    free(prevBook);
+//    free(p);
+//    free(temp);
     prevBook = NULL;
     p = NULL;
     temp = NULL;
 }
 
-void delete_book_from_list( Book * selectedBook) {
+void delete_book_from_list( Book * table) {
     Book *nextBook = NULL;
     Book *prevBook = NULL;
-//    Book *selectedBook = TABLE[hashIndex];
-
-    if (selectedBook->next == NULL) {
-        prevBook = selectedBook->prev;
-        prevBook->next = NULL;
-        free(selectedBook);
-    }
-    if (selectedBook->prev == NULL) {
-        nextBook = selectedBook->next;
+/*
+    if ((*table)->prev == NULL) {
+        nextBook = (*table)->next;
         nextBook->prev = NULL;
-        free(selectedBook);
-    } else {
-        prevBook = selectedBook->prev;
-        nextBook = selectedBook->next;
+        free((*table));
+        (*table) = NULL;
+    }
+    if ((*table)->next == NULL) {
+        prevBook = (*table)->prev;
+        prevBook->next = NULL;
+        free(table);
+        table = NULL;
+    }
+    else {
+        prevBook = (*table)->prev;
+        nextBook = (*table)->next;
         prevBook->next = nextBook;
         nextBook->prev = prevBook;
-        free(selectedBook);
-    }
+        free(*table);
+        table = NULL;
+    }*/
+//    free(nextBook);
+//    free(prevBook);
     nextBook = NULL;
     prevBook = NULL;
-//    selectedBook = NULL;
     currentState = idle_state;
 }
 
 void act_book_add() {
-    fptr = fopen("BooksLibrary.txt", "w");
+    fptr = fopen("BooksLibrary.txt", "r+");
     createBooksList();
-    writeBooksList2File();
-//    displayList();
+    displayList();
+//    writeBooksList2File();
     fclose(fptr);
     fptr=NULL;
     currentState = idle_state;
@@ -348,7 +356,6 @@ void displaySelectedBook(Book *SelectedBook) {
 
 Book *findBook(Book *table[], HashType hash, HashType hashIndex) {
     Book *SelectedBook = table[hashIndex];
-    if (SelectedBook == NULL) return NULL;
     while (SelectedBook != NULL) {
         if (SelectedBook->hash == hash)
             return SelectedBook;
@@ -363,7 +370,7 @@ void act_book_del() {
     char title[LENGTH];
     Book * SelectedBook=NULL;
 
-    if ((fptr = fopen("BooksLibrary.txt", "r+")) != NULL) {
+    if ((fptr = fopen("BooksLibrary.txt", "w+")) != NULL) {
         readListFromLibrary();
         printf("Please, enter book's title: \n");
         scanf("%s", title);
@@ -383,6 +390,7 @@ void act_book_del() {
         }
     }else printf("Error! opening file. Perhaps file doesn't exist\n");
     fclose(fptr);
+//    free(SelectedBook );
     SelectedBook = NULL;
     currentState = idle_state;
 }
@@ -407,6 +415,7 @@ void act_book_find() {
     } else printf("Error! opening file. Perhaps file doesn't exist\n");
     fclose(fptr);
     fptr=NULL;
+//    free(SelectedBook);
     SelectedBook = NULL;
     currentState = SubMenu;
 }
@@ -433,6 +442,7 @@ HashType HashIndex(HashType hash) {
 
 void clearTable() {
     for (int i = 0; i < TABLE_SIZE; ++i) {
+//        free(TABLE[i]);
         TABLE[i] = NULL;
     }
 }
