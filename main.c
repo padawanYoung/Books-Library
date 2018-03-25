@@ -70,7 +70,7 @@ void displayList();
 
 void writeBooksList2File();
 
-void delete_book_from_list( Book * selectedBook);
+void delete_book_from_list( Book * table);
 
 void displaySelectedBook(Book *SelectedBook);
 
@@ -116,7 +116,6 @@ int main() {
     for (int i = 0; i < 6; ++i) {
         Action[i] = NULL;
     }
-    fptr = NULL;
     printf("\nProgram was closed\n");
     return 0;
 }
@@ -177,7 +176,6 @@ void act_read_from_library() {
         currentState = SubMenu;
     }
     fclose(fptr);
-    fptr = NULL;
 }
 
 void displayList() {
@@ -195,8 +193,6 @@ void displayList() {
             swap = swap->next;
         }
     }
-//    free(swap);
-    swap = NULL;
 }
 
 void writeBooksList2File() {
@@ -212,14 +208,11 @@ void writeBooksList2File() {
             temp = temp->next;
         }
     }
-//    free(temp);
-    temp = NULL;
 }
 
 void readListFromLibrary() {
     Book *temp = NULL;
     Book *p = NULL;
-    Book *prevBook = NULL;
     clearTable();
     int eof = 0;
     do {
@@ -232,8 +225,13 @@ void readListFromLibrary() {
             eof = 1;
         }
         hashIndex = HashIndex(temp->hash);
-        temp->next = NULL;
-        temp->prev = NULL;
+
+        if (temp->title[0]=='\r'){
+            temp = NULL;
+        }else{
+            temp->next = NULL;
+            temp->prev = NULL;
+        }
 
         if (TABLE[hashIndex] == NULL) { // if list currently empty as first Book
             TABLE[hashIndex] = temp;
@@ -246,21 +244,16 @@ void readListFromLibrary() {
             p->next->prev = p;
         }
     } while (eof == 0);
-    prevBook = NULL;
-    p = NULL;
-    temp = NULL;
 }
 
 void createBooksList() {
     int i = 1;
-    Book *prevBook = NULL;
     Book *temp = NULL;
     Book *p = NULL;
     permission = yes;
 
     while (permission == yes) {
         permission = z_state;
-        //individual isolated node
         temp = (Book *) malloc(sizeof(Book));
         temp->date = (publishingDate *) malloc(sizeof(publishingDate));
         printf("Enter the data for Book's number: %d\n"
@@ -279,7 +272,7 @@ void createBooksList() {
         temp->next = NULL;
         temp->prev = NULL;
 
-        if (TABLE[hashIndex] == NULL) { // if list currently empty as first Book
+        if (TABLE[hashIndex] == NULL) {
             TABLE[hashIndex] = temp;
         } else {
             p = TABLE[hashIndex];
@@ -293,12 +286,6 @@ void createBooksList() {
         if (scanf("%s", &permission) == no)break;
     }
     permission = z_state;
-//    free(prevBook);
-//    free(p);
-//    free(temp);
-    prevBook = NULL;
-    p = NULL;
-    temp = NULL;
 }
 
 void delete_book_from_list( Book * table) {
@@ -325,10 +312,6 @@ void delete_book_from_list( Book * table) {
         free(*table);
         table = NULL;
     }*/
-//    free(nextBook);
-//    free(prevBook);
-    nextBook = NULL;
-    prevBook = NULL;
     currentState = idle_state;
 }
 
@@ -336,9 +319,8 @@ void act_book_add() {
     fptr = fopen("BooksLibrary.txt", "r+");
     createBooksList();
     displayList();
-//    writeBooksList2File();
+    writeBooksList2File();
     fclose(fptr);
-    fptr=NULL;
     currentState = idle_state;
 }
 
@@ -370,7 +352,7 @@ void act_book_del() {
     char title[LENGTH];
     Book * SelectedBook=NULL;
 
-    if ((fptr = fopen("BooksLibrary.txt", "w+")) != NULL) {
+    if ((fptr = fopen("BooksLibrary.txt", "r+")) != NULL) {
         readListFromLibrary();
         printf("Please, enter book's title: \n");
         scanf("%s", title);
@@ -390,8 +372,6 @@ void act_book_del() {
         }
     }else printf("Error! opening file. Perhaps file doesn't exist\n");
     fclose(fptr);
-//    free(SelectedBook );
-    SelectedBook = NULL;
     currentState = idle_state;
 }
 
@@ -406,17 +386,12 @@ void act_book_find() {
 
         hash = Hash(title);
         hashIndex = HashIndex(hash);
-
-//        if((SelectedBook = findBook(TABLE, hash, hashIndex))!= NULL)
         SelectedBook = findBook(TABLE, hash, hashIndex);
         if (SelectedBook != NULL)
             displaySelectedBook(SelectedBook);
         else printf("Book with title %s wasn't found\n", title);
     } else printf("Error! opening file. Perhaps file doesn't exist\n");
     fclose(fptr);
-    fptr=NULL;
-//    free(SelectedBook);
-    SelectedBook = NULL;
     currentState = SubMenu;
 }
 
@@ -442,7 +417,7 @@ HashType HashIndex(HashType hash) {
 
 void clearTable() {
     for (int i = 0; i < TABLE_SIZE; ++i) {
-//        free(TABLE[i]);
+        free(TABLE[i]);
         TABLE[i] = NULL;
     }
 }
