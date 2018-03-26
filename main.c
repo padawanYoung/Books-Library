@@ -31,7 +31,9 @@ typedef struct {
 typedef struct booksPattern {
     HashType hash;
     char author[LENGTH];
+//    char *author;
     char title[LENGTH];
+//    char *title;
     publishingDate *date;
     unsigned int pagesQuantity;
     struct booksPattern *next;
@@ -39,6 +41,8 @@ typedef struct booksPattern {
 } Book;
 
 Book *TABLE[TABLE_SIZE];
+//Book *temp = NULL;
+//Book *p = NULL;
 
 FILE *fptr;
 
@@ -84,6 +88,8 @@ HashType HashIndex(HashType hash);
 
 void clearTable();
 
+char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string);
+
 int main() {
     setbuf(stdout, 0);
     for (int j = 0; j < TABLE_SIZE; ++j) TABLE[j] = NULL;
@@ -111,17 +117,12 @@ int main() {
         }
         if (currentState == EXIT) break;
     }
-
     clearTable();
-    for (int i = 0; i < 6; ++i) {
-        Action[i] = NULL;
-    }
     printf("\nProgram was closed\n");
     return 0;
 }
 
 void act_mainMenu() {
-    printf("=====================================================\n");
     printf("1 - Create a new file\n");
     printf("2 - Open exist book's library\n");
     printf("3 - Add book to library\n");
@@ -179,18 +180,18 @@ void act_read_from_library() {
 }
 
 void displayList() {
-    Book *swap = NULL;
+   Book * temp = NULL;
     for (int i = 0; i < TABLE_SIZE; i++) {
-        swap = TABLE[i];
-        while (swap != NULL) {
+        temp = TABLE[i];
+        while (temp != NULL) {
             printf("Book #%d\n", i);
-            printf("Author: %s\n", swap->author);
-            printf("Title: %s\n", swap->title);
-            printf("HASH: %u\n", swap->hash);
-            printf("Pages: %u\n", swap->pagesQuantity);
-            printf("Date: %u/%u/%u\n", swap->date->day, swap->date->month, swap->date->year);
+            printf("Author: %s\n", temp->author);
+            printf("Title: %s\n", temp->title);
+            printf("HASH: %u\n", temp->hash);
+            printf("Pages: %u\n", temp->pagesQuantity);
+            printf("Date: %u/%u/%u\n", temp->date->day, temp->date->month, temp->date->year);
             printf("====================================================\n");
-            swap = swap->next;
+            temp = temp->next;
         }
     }
 }
@@ -259,8 +260,10 @@ void createBooksList() {
         printf("Enter the data for Book's number: %d\n"
                        "\tAuthor: ", i++);
         scanf("%s", temp->author);
+//        temp->author = AllocateFlexibleString(stdin,'\n',temp->author);
         printf("\tTitle: ");
         scanf("%s", temp->title);
+//        temp->author = AllocateFlexibleString(stdin,'\n',temp->title);
         printf("\tPages' quantity: ");
         scanf("%u", &(temp->pagesQuantity));
         printf("\n Date in format -> dd/mm/yyy: ");
@@ -289,8 +292,8 @@ void createBooksList() {
 }
 
 void delete_book_from_list( Book * table) {
-    Book *nextBook = NULL;
-    Book *prevBook = NULL;
+//    Book *nextBook = NULL;
+//    Book *prevBook = NULL;
 /*
     if ((*table)->prev == NULL) {
         nextBook = (*table)->next;
@@ -316,7 +319,12 @@ void delete_book_from_list( Book * table) {
 }
 
 void act_book_add() {
-    fptr = fopen("BooksLibrary.txt", "r+");
+    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
+        readListFromLibrary();
+    }
+    fclose(fptr);
+
+    fptr = fopen("BooksLibrary.txt", "w+");
     createBooksList();
     displayList();
     writeBooksList2File();
@@ -339,8 +347,9 @@ void displaySelectedBook(Book *SelectedBook) {
 Book *findBook(Book *table[], HashType hash, HashType hashIndex) {
     Book *SelectedBook = table[hashIndex];
     while (SelectedBook != NULL) {
-        if (SelectedBook->hash == hash)
+        if (SelectedBook->hash == hash){
             return SelectedBook;
+        }
         SelectedBook = SelectedBook->next;
     }
     return SelectedBook;
@@ -391,6 +400,7 @@ void act_book_find() {
             displaySelectedBook(SelectedBook);
         else printf("Book with title %s wasn't found\n", title);
     } else printf("Error! opening file. Perhaps file doesn't exist\n");
+//    SelectedBook = NULL;
     fclose(fptr);
     currentState = SubMenu;
 }
@@ -420,4 +430,17 @@ void clearTable() {
         free(TABLE[i]);
         TABLE[i] = NULL;
     }
+}
+char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string){
+    int i = 0;
+    int j = 1;
+    int temp = 0;
+    string = (char*) malloc(sizeof(char));
+    while ((char)temp != SeparateSymbol){
+        temp =getc(pointer);
+        string = (char*) realloc(string,j++ * sizeof(char));
+        string[i++] = (char)temp;
+    }
+    string[i]='\0';
+    return string;
 }
