@@ -187,9 +187,9 @@ void displayList() {
         temp = TABLE[i];
         while (temp != NULL) {
             printf("Book #%d\n", i);
-//            printf("Author: %s\n", temp->author);
+            printf("Author: ");
             printString(temp->author);
-//            printf("Title: %s\n", temp->title);
+            printf("Title: ");
             printString(temp->title);
             printf("HASH: %u\n", temp->hash);
             printf("Pages: %u\n", temp->pagesQuantity);
@@ -339,7 +339,9 @@ void act_book_add() {
 }
 
 void displaySelectedBook(Book *SelectedBook) {
+    printf("Author: ");
     printString(SelectedBook->author);
+    printf("Title: ");
     printString(SelectedBook->title);
     printf("HASH: %u\n", SelectedBook->hash);
     printf("Pages: %u\n", SelectedBook->pagesQuantity);
@@ -472,5 +474,5 @@ void printString (char * string){
         }
         printf("%c",*string++);
     }
-//    printf("\n");
+    printf("\n");
 }
