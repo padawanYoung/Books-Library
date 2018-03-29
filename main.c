@@ -30,10 +30,10 @@ typedef struct {
 
 typedef struct booksPattern {
     HashType hash;
-    char author[LENGTH];
-//    char *author;
-    char title[LENGTH];
-//    char *title;
+//    char author[LENGTH];
+    char *author;
+//    char title[LENGTH];
+    char *title;
     publishingDate *date;
     unsigned int pagesQuantity;
     struct booksPattern *next;
@@ -85,6 +85,8 @@ HashType Hash(char *str);
 HashType HashIndex(HashType hash);
 
 char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string);
+
+void printString (char * string);
 
 void clearTable();
 
@@ -185,8 +187,10 @@ void displayList() {
         temp = TABLE[i];
         while (temp != NULL) {
             printf("Book #%d\n", i);
-            printf("Author: %s\n", temp->author);
-            printf("Title: %s\n", temp->title);
+//            printf("Author: %s\n", temp->author);
+            printString(temp->author);
+//            printf("Title: %s\n", temp->title);
+            printString(temp->title);
             printf("HASH: %u\n", temp->hash);
             printf("Pages: %u\n", temp->pagesQuantity);
             printf("Date: %u/%u/%u\n", temp->date->day, temp->date->month, temp->date->year);
@@ -256,11 +260,9 @@ void createBooksList() {
         temp->date = (publishingDate *) malloc(sizeof(publishingDate));
         printf("Enter the data for Book's number: %d\n"
                        "\tAuthor: ", i++);
-        scanf("%s", temp->author);
-//        temp->author = AllocateFlexibleString(stdin,'\n',temp->author);
+        temp->author = AllocateFlexibleString(stdin,'\n',temp->author);
         printf("\tTitle: ");
-        scanf("%s", temp->title);
-//        temp->title = AllocateFlexibleString(stdin,'\n',temp->title);
+        temp->title = AllocateFlexibleString(stdin,'\n',temp->title);
         printf("\tPages' quantity: ");
         scanf("%u", &(temp->pagesQuantity));
         printf("\n Date in format -> dd/mm/yyy: ");
@@ -321,24 +323,24 @@ void delete_book_from_list( Book ** book , HashType hash){
 }
 
 void act_book_add() {
-    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
-        *TABLE=readListFromLibrary(TABLE);
-    }else {
-        printf("File is empty\n");
-    }
-    fclose(fptr);
-
-    fptr = fopen("BooksLibrary.txt", "w+");
+//    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
+//        *TABLE=readListFromLibrary(TABLE);
+//    }else {
+//        printf("File is empty\n");
+//    }
+//    fclose(fptr);
+//
+//    fptr = fopen("BooksLibrary.txt", "w+");
     createBooksList();
     displayList();
-    writeBooksList2File();
+//    writeBooksList2File();
     fclose(fptr);
     currentState = idle_state;
 }
 
 void displaySelectedBook(Book *SelectedBook) {
-    printf("Author: %s\n", SelectedBook->author);
-    printf("Title: %s\n", SelectedBook->title);
+    printString(SelectedBook->author);
+    printString(SelectedBook->title);
     printf("HASH: %u\n", SelectedBook->hash);
     printf("Pages: %u\n", SelectedBook->pagesQuantity);
     printf("Date: %u/%u/%u\n",
@@ -448,6 +450,7 @@ char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string){
     int i = 0;
     int j = 1;
     int temp = 0;
+    fflush(pointer);
     string = (char*) malloc(sizeof(char));
     while ((char)temp != SeparateSymbol){
         temp =getc(pointer);
@@ -460,4 +463,14 @@ char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string){
     }
     string[i-1]='\0';
     return string;
+}
+
+void printString (char * string){
+    while (*string){
+        if (*string == '_') {
+            *string = ' ';
+        }
+        printf("%c",*string++);
+    }
+//    printf("\n");
 }
