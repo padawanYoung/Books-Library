@@ -215,24 +215,18 @@ Book * readListFromLibrary(Book * table[]) {
     Book *temp = NULL;
     Book *p = NULL;
     clearTable();
-    int eof = 0;
-    do {
-        temp = (Book *) malloc(sizeof(Book));
-        temp->date = (publishingDate *) malloc(sizeof(publishingDate));
-        if (fscanf(fptr, "%u\t%s\t%s\t%u\t%u\t%u\t%u\n",
-                   &temp->hash, temp->author, temp->title,
-                   &temp->pagesQuantity, &temp->date->day,
-                   &temp->date->month, &temp->date->year) == EOF) {
-            eof = 1;
-        }
+    temp = (Book *) malloc(sizeof(Book));
+    temp->date = (publishingDate *) malloc(sizeof(publishingDate));
+
+    while (fscanf(fptr, "%u\t%s\t%s\t%u\t%u\t%u\t%u\n",
+                  &temp->hash, temp->author, temp->title,
+                  &temp->pagesQuantity, &temp->date->day,
+                  &temp->date->month, &temp->date->year) != EOF) {
+
         hashIndex = HashIndex(temp->hash);
 
-        if (temp->title[0]=='\r'){
-            temp = NULL;
-        }else{
             temp->next = NULL;
             temp->prev = NULL;
-        }
 
         if (table[hashIndex] == NULL) { // if list currently empty as first Book
             table[hashIndex] = temp;
@@ -244,7 +238,9 @@ Book * readListFromLibrary(Book * table[]) {
             p->next = temp;
             p->next->prev = p;
         }
-    } while (eof == 0);
+        temp = (Book *) malloc(sizeof(Book));
+        temp->date = (publishingDate *) malloc(sizeof(publishingDate));
+    }
     return *table;
 }
 
@@ -264,7 +260,7 @@ void createBooksList() {
 //        temp->author = AllocateFlexibleString(stdin,'\n',temp->author);
         printf("\tTitle: ");
         scanf("%s", temp->title);
-//        temp->author = AllocateFlexibleString(stdin,'\n',temp->title);
+//        temp->title = AllocateFlexibleString(stdin,'\n',temp->title);
         printf("\tPages' quantity: ");
         scanf("%u", &(temp->pagesQuantity));
         printf("\n Date in format -> dd/mm/yyy: ");
@@ -456,8 +452,12 @@ char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string){
     while ((char)temp != SeparateSymbol){
         temp =getc(pointer);
         string = (char*) realloc(string,j++ * sizeof(char));
-        string[i++] = (char)temp;
+        if (temp == 32){
+            string[i++] = '_';
+        }else{
+            string[i++] = (char)temp;
+        }
     }
-    string[i]='\0';
+    string[i-1]='\0';
     return string;
 }
