@@ -173,6 +173,7 @@ void act_read_from_library() {
             currentState = idle_state;
         }
     } else {
+        clearTable();
         *TABLE = readListFromLibrary(TABLE);
         displayList();
         currentState = SubMenu;
@@ -204,10 +205,10 @@ void writeBooksList2File() {
     for (int i = 0; i < TABLE_SIZE; ++i) {
         temp = TABLE[i];
         while (temp != NULL) {
-            fprintf(fptr, "%u\t", temp->hash);
-            fprintf(fptr, "%s{%s}", temp->author, temp->title);
-            fprintf(fptr, "%u\t", temp->pagesQuantity);
-            fprintf(fptr, "%u\t%u\t%u\n", temp->date->day, temp->date->month, temp->date->year);
+            fprintf(fptr, "%u{", temp->hash);
+            fprintf(fptr, "%s;%s;", temp->author, temp->title);
+            fprintf(fptr, "%u;", temp->pagesQuantity);
+            fprintf(fptr, "%u/%u/%u}\n", temp->date->day, temp->date->month, temp->date->year);
             temp = temp->next;
         }
     }
@@ -216,16 +217,15 @@ void writeBooksList2File() {
 Book * readListFromLibrary(Book * table[]) {
     Book *temp = NULL;
     Book *p = NULL;
-    clearTable();
     temp = (Book *) malloc(sizeof(Book));
     temp->date = (publishingDate *) malloc(sizeof(publishingDate));
 
-    while (fscanf(fptr, "%u\t", &temp->hash) != EOF) {
+    while (fscanf(fptr, "%u{", &temp->hash) != EOF) {
 
         hashIndex = HashIndex(temp->hash);
-        temp->author = ReadStringFromInputStream (fptr, '{', 0);
-        temp->title = ReadStringFromInputStream(fptr, '}', 0);
-        fscanf(fptr, "%u\t%u\t%u\t%u\n",
+        temp->author = ReadStringFromInputStream (fptr, ';', 0);
+        temp->title = ReadStringFromInputStream(fptr, ';', 0);
+        fscanf(fptr, "%u;%u/%u/%u}\n",
                   &temp->pagesQuantity,
                &temp->date->day, &temp->date->month, &temp->date->year);
             temp->next = NULL;
