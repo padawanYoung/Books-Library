@@ -84,7 +84,9 @@ HashType Hash(char *str);
 
 HashType HashIndex(HashType hash);
 
-char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string);
+char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol);
+
+char * ReadStringFromFile(FILE *pointer, char SeparateSymbol);
 
 void printString (char * string);
 
@@ -92,6 +94,7 @@ void clearTable();
 
 int main() {
     setbuf(stdout, 0);
+
     for (int j = 0; j < TABLE_SIZE; ++j) TABLE[j] = NULL;
 
     void (*Action [6])();
@@ -206,8 +209,7 @@ void writeBooksList2File() {
         temp = TABLE[i];
         while (temp != NULL) {
             fprintf(fptr, "%u\t", temp->hash);
-            fprintf(fptr, "%s\t", temp->author);
-            fprintf(fptr, "%s\t", temp->title);
+            fprintf(fptr, "%s{%s}", temp->author, temp->title);
             fprintf(fptr, "%u\t", temp->pagesQuantity);
             fprintf(fptr, "%u\t%u\t%u\n", temp->date->day, temp->date->month, temp->date->year);
             temp = temp->next;
@@ -222,13 +224,14 @@ Book * readListFromLibrary(Book * table[]) {
     temp = (Book *) malloc(sizeof(Book));
     temp->date = (publishingDate *) malloc(sizeof(publishingDate));
 
-    while (fscanf(fptr, "%u\t%s\t%s\t%u\t%u\t%u\t%u\n",
-                  &temp->hash, temp->author, temp->title,
-                  &temp->pagesQuantity, &temp->date->day,
-                  &temp->date->month, &temp->date->year) != EOF) {
+    while (fscanf(fptr, "%u\t", &temp->hash) != EOF) {
 
         hashIndex = HashIndex(temp->hash);
-
+        temp->author = ReadStringFromFile(fptr, '{');
+        temp->title = ReadStringFromFile(fptr, '}');
+        fscanf(fptr, "%u\t%u\t%u\t%u\n",
+                  &temp->pagesQuantity,
+               &temp->date->day, &temp->date->month, &temp->date->year);
             temp->next = NULL;
             temp->prev = NULL;
 
@@ -260,9 +263,9 @@ void createBooksList() {
         temp->date = (publishingDate *) malloc(sizeof(publishingDate));
         printf("Enter the data for Book's number: %d\n"
                        "\tAuthor: ", i++);
-        temp->author = AllocateFlexibleString(stdin,'\n',temp->author);
+        temp->author = AllocateFlexibleString(stdin,'\n');
         printf("\tTitle: ");
-        temp->title = AllocateFlexibleString(stdin,'\n',temp->title);
+        temp->title = AllocateFlexibleString(stdin,'\n');
         printf("\tPages' quantity: ");
         scanf("%u", &(temp->pagesQuantity));
         printf("\n Date in format -> dd/mm/yyy: ");
@@ -297,7 +300,7 @@ void delete_book_from_list( Book ** book , HashType hash){
 
     if (selectedNode != NULL && selectedNode->hash == hash){
         *book=selectedNode->next;
-        (*book)->prev = NULL;
+//        (*book)->prev = NULL;
         free(book);
         book=NULL;
         return;
@@ -323,17 +326,17 @@ void delete_book_from_list( Book ** book , HashType hash){
 }
 
 void act_book_add() {
-//    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
-//        *TABLE=readListFromLibrary(TABLE);
-//    }else {
-//        printf("File is empty\n");
-//    }
-//    fclose(fptr);
-//
-//    fptr = fopen("BooksLibrary.txt", "w+");
+    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
+        *TABLE=readListFromLibrary(TABLE);
+    }else {
+        printf("File is empty\n");
+    }
+    fclose(fptr);
+
+    fptr = fopen("BooksLibrary.txt", "w+");
     createBooksList();
     displayList();
-//    writeBooksList2File();
+    writeBooksList2File();
     fclose(fptr);
     currentState = idle_state;
 }
@@ -366,7 +369,7 @@ Book * findBook(Book *table[], HashType hash, HashType hashIndex) {
 void act_book_del() {
     permission = z_state;
     hashIndex = 0;
-    char title[LENGTH];
+    char * title;
     Book * SelectedBook=NULL;
 
     if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL) {
@@ -378,7 +381,7 @@ void act_book_del() {
     fclose(fptr);
 
         printf("Please, enter book's title: \n");
-        scanf("%s", title);
+        title = AllocateFlexibleString(stdin, '\n');
 
         hash = Hash(title);
         hashIndex = HashIndex(hash);
@@ -404,13 +407,13 @@ void act_book_del() {
 
 void act_book_find() {
     hashIndex = 0;
-    char title[LENGTH];
+    char  * title;
     Book * SelectedBook=NULL;
     if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
         *TABLE=readListFromLibrary(TABLE);
         printf("Please, enter book's title: \n");
-        scanf("%s", title);
-
+        fflush(stdin);
+        title = AllocateFlexibleString(stdin,'\n');
         hash = Hash(title);
         hashIndex = HashIndex(hash);
         SelectedBook = findBook(TABLE, hash, hashIndex);
@@ -448,20 +451,33 @@ void clearTable() {
         TABLE[i] = NULL;
     }
 }
-char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string){
+char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol){
+    char * string;
     int i = 0;
     int j = 1;
     int temp = 0;
-    fflush(pointer);
+//    fflush(pointer);
     string = (char*) malloc(sizeof(char));
     while ((char)temp != SeparateSymbol){
         temp =getc(pointer);
         string = (char*) realloc(string,j++ * sizeof(char));
-        if (temp == 32){
-            string[i++] = '_';
-        }else{
-            string[i++] = (char)temp;
-        }
+        string[i] = (char)temp;
+        i++;
+    }
+    string[i-1]='\0';
+    return string;
+}
+
+char * ReadStringFromFile(FILE *pointer, char SeparateSymbol){
+    char *string;
+    int i = 0;
+    int j = 1;
+    int temp = 0;
+    string = (char*) malloc(sizeof(char));
+    while ((char)temp != SeparateSymbol){
+        temp =getc(pointer);
+        string = (char*) realloc(string,j++ * sizeof(char));
+        string[i++] = (char)temp;
     }
     string[i-1]='\0';
     return string;
@@ -469,9 +485,9 @@ char * AllocateFlexibleString(FILE *pointer, char SeparateSymbol, char *string){
 
 void printString (char * string){
     while (*string){
-        if (*string == '_') {
-            *string = ' ';
-        }
+//        if (*string == '_') {
+//            *string = ' ';
+//        }
         printf("%c",*string++);
     }
     printf("\n");
