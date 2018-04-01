@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LENGTH 20
 #define TABLE_SIZE 16
 
 typedef enum {
@@ -68,11 +67,11 @@ void displayList();
 
 void writeBooksList2File();
 
-void delete_book_from_list( Book ** book , HashType hash);
+void delete_book_from_list(Book **book, HashType hash);
 
 void displaySelectedBook(Book *SelectedBook);
 
-Book * readListFromLibrary(Book * table[]);
+Book *readListFromLibrary(Book *table[]);
 
 Book *findBook(Book *table[], HashType hash, HashType hashIndex);
 
@@ -82,9 +81,9 @@ HashType Hash(char *str);
 
 HashType HashIndex(HashType hash);
 
-char * ReadStringFromInputStream(FILE *pointer, char SeparateSymbol, int fflushFlag);
+char *ReadStringFromInputStream(FILE *pointer, char SeparateSymbol, int fflushFlag);
 
-void printString (char * string);
+void printString(char *string);
 
 void clearTable();
 
@@ -93,7 +92,7 @@ int main() {
 
     for (int j = 0; j < TABLE_SIZE; ++j) TABLE[j] = NULL;
 
-    void (*Action [6])();
+    void (*Action[6])();
     Action[createNew] = act_create_library;
     Action[read] = act_read_from_library;
     Action[add] = act_book_add;
@@ -114,21 +113,18 @@ int main() {
             scanf("%d", &currentState);
             (*Action[currentState])();
         }
-        if (currentState == EXIT){
+        if (currentState == EXIT) {
             break;
         }
     }
     clearTable();
-    printf("\nProgram was closed\n");
+    printf("Program was closed\n");
     return 0;
 }
 
 void act_mainMenu() {
     printf("1 - Create a new file\n");
     printf("2 - Open exist book's library\n");
-    printf("3 - Add book to library\n");
-    printf("4 - Delete book from library\n");
-    printf("5 - Find book from library\n");
     printf("0 - Close the program\n");
     printf("------------------------------------------------------\n");
 }
@@ -141,7 +137,7 @@ void act_subMenu() {
 void act_create_library() {
     fptr = fopen("BooksLibrary.txt", "w+");
     fclose(fptr);
-    fptr=NULL;
+    fptr = NULL;
     printf("\nFile BooksLibrary.txt was created\n"
                    "Would you like to add few books to new library? y/n\n");
     scanf("%s", &permission);
@@ -182,7 +178,7 @@ void act_read_from_library() {
 }
 
 void displayList() {
-   Book * temp = NULL;
+    Book *temp = NULL;
     for (int i = 0; i < TABLE_SIZE; i++) {
         temp = TABLE[i];
         while (temp != NULL) {
@@ -214,7 +210,7 @@ void writeBooksList2File() {
     }
 }
 
-Book * readListFromLibrary(Book * table[]) {
+Book *readListFromLibrary(Book *table[]) {
     Book *temp = NULL;
     Book *p = NULL;
     temp = (Book *) malloc(sizeof(Book));
@@ -223,13 +219,13 @@ Book * readListFromLibrary(Book * table[]) {
     while (fscanf(fptr, "%u{", &temp->hash) != EOF) {
 
         hashIndex = HashIndex(temp->hash);
-        temp->author = ReadStringFromInputStream (fptr, ';', 0);
+        temp->author = ReadStringFromInputStream(fptr, ';', 0);
         temp->title = ReadStringFromInputStream(fptr, ';', 0);
         fscanf(fptr, "%u;%u/%u/%u}\n",
-                  &temp->pagesQuantity,
+               &temp->pagesQuantity,
                &temp->date->day, &temp->date->month, &temp->date->year);
-            temp->next = NULL;
-            temp->prev = NULL;
+        temp->next = NULL;
+        temp->prev = NULL;
 
         if (table[hashIndex] == NULL) {
             table[hashIndex] = temp;
@@ -259,7 +255,7 @@ void createBooksList() {
         temp->date = (publishingDate *) malloc(sizeof(publishingDate));
         printf("Enter the data for Book's number: %d\n"
                        "\tAuthor: ", i++);
-        temp->author = ReadStringFromInputStream(stdin, '\n',1);
+        temp->author = ReadStringFromInputStream(stdin, '\n', 1);
         printf("\tTitle: ");
         temp->title = ReadStringFromInputStream(stdin, '\n', 1);
         printf("\tPages' quantity: ");
@@ -289,29 +285,29 @@ void createBooksList() {
     permission = z_state;
 }
 
-void delete_book_from_list( Book ** book , HashType hash){
-    Book * prevNode=NULL;
-    Book * nextNode=NULL;
-    Book * selectedNode = *book;
+void delete_book_from_list(Book **book, HashType hash) {
+    Book *prevNode = NULL;
+    Book *nextNode = NULL;
+    Book *selectedNode = *book;
 
-    if (selectedNode != NULL && selectedNode->hash == hash){
-        *book=selectedNode->next;
+    if (selectedNode != NULL && selectedNode->hash == hash) {
+        *book = selectedNode->next;
         free(book);
-        book=NULL;
+        book = NULL;
         return;
     }
-    while (selectedNode!=NULL && selectedNode->hash!=hash){
+    while (selectedNode != NULL && selectedNode->hash != hash) {
         prevNode = selectedNode;
-        selectedNode=selectedNode->next;
+        selectedNode = selectedNode->next;
     }
     if (selectedNode == NULL) {
         printf("Doesn't exist\n");
         return;
     }
-    if (selectedNode->next==NULL && selectedNode->hash == hash){
+    if (selectedNode->next == NULL && selectedNode->hash == hash) {
         prevNode = selectedNode->prev;
         prevNode->next = NULL;
-    } else{
+    } else {
         nextNode = selectedNode->next;
         prevNode->next = nextNode;
         nextNode->prev = prevNode;
@@ -321,13 +317,6 @@ void delete_book_from_list( Book ** book , HashType hash){
 }
 
 void act_book_add() {
-    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
-        *TABLE=readListFromLibrary(TABLE);
-    }else {
-        printf("File is empty\n");
-    }
-    fclose(fptr);
-
     fptr = fopen("BooksLibrary.txt", "w+");
     createBooksList();
     displayList();
@@ -350,10 +339,10 @@ void displaySelectedBook(Book *SelectedBook) {
     printf("====================================================\n");
 }
 
-Book * findBook(Book *table[], HashType hash, HashType hashIndex) {
+Book *findBook(Book *table[], HashType hash, HashType hashIndex) {
     Book *SelectedBook = table[hashIndex];
     while (SelectedBook != NULL) {
-        if (SelectedBook->hash == hash){
+        if (SelectedBook->hash == hash) {
             return SelectedBook;
         }
         SelectedBook = SelectedBook->next;
@@ -364,58 +353,46 @@ Book * findBook(Book *table[], HashType hash, HashType hashIndex) {
 void act_book_del() {
     permission = z_state;
     hashIndex = 0;
-    char * title;
-    Book * SelectedBook=NULL;
+    char *title;
+    Book *SelectedBook = NULL;
 
-    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL) {
-        *TABLE=readListFromLibrary(TABLE);
-    }else {
-        printf("Error! opening file. Perhaps file doesn't exist\n");
-        return;
+    printf("Please, enter book's title: \n");
+    title = ReadStringFromInputStream(stdin, '\n', 1);
+
+    hash = Hash(title);
+    hashIndex = HashIndex(hash);
+
+    SelectedBook = findBook(TABLE, hash, hashIndex);
+    displaySelectedBook(SelectedBook);
+
+    printf("Are you sure that you want to delete this book from library? y/n\n");
+    scanf("%s", &permission);
+    if (permission == yes) {
+        permission = z_state;
+        delete_book_from_list(&TABLE[hashIndex], hash);
+        printf("Book was deleted\n");
+
+        fptr = fopen("BooksLibrary.txt", "w+");
+        writeBooksList2File();
+        fclose(fptr);
+
+        printf("Lirary was updated\n");
     }
-    fclose(fptr);
-
-        printf("Please, enter book's title: \n");
-        title = ReadStringFromInputStream(stdin, '\n', 1);
-
-        hash = Hash(title);
-        hashIndex = HashIndex(hash);
-
-        SelectedBook = findBook(TABLE, hash, hashIndex);
-        displaySelectedBook(SelectedBook);
-
-        printf("Are you sure that you want to delete this book from library? y/n\n");
-        scanf("%s", &permission);
-        if (permission == yes) {
-            permission = z_state;
-            delete_book_from_list(&TABLE[hashIndex], hash);
-            printf("Book was deleted\n");
-
-            fptr = fopen("BooksLibrary.txt", "w+");
-            writeBooksList2File();
-            fclose(fptr);
-
-            printf("Lirary was updated\n");
-        }
     currentState = idle_state;
 }
 
 void act_book_find() {
     hashIndex = 0;
-    char  * title;
-    Book * SelectedBook=NULL;
-    if ((fptr = fopen("BooksLibrary.txt", "r")) != NULL){
-        *TABLE=readListFromLibrary(TABLE);
-        printf("Please, enter book's title: \n");
-        title = ReadStringFromInputStream(stdin, '\n' , 1);
-        hash = Hash(title);
-        hashIndex = HashIndex(hash);
-        SelectedBook = findBook(TABLE, hash, hashIndex);
-        if (SelectedBook != NULL)
-            displaySelectedBook(SelectedBook);
-        else printf("Book with title %s wasn't found\n", title);
-    } else printf("Error! opening file. Perhaps file doesn't exist\n");
-    fclose(fptr);
+    char *title;
+    Book *SelectedBook = NULL;
+    printf("Please, enter book's title: \n");
+    title = ReadStringFromInputStream(stdin, '\n', 1);
+    hash = Hash(title);
+    hashIndex = HashIndex(hash);
+    SelectedBook = findBook(TABLE, hash, hashIndex);
+    if (SelectedBook != NULL)
+        displaySelectedBook(SelectedBook);
+    else printf("Book with title %s wasn't found\n", title);
     currentState = SubMenu;
 }
 
@@ -445,28 +422,29 @@ void clearTable() {
         TABLE[i] = NULL;
     }
 }
-char * ReadStringFromInputStream(FILE *pointer, char SeparateSymbol, int fflushFlag){
-    char * string;
+
+char *ReadStringFromInputStream(FILE *pointer, char SeparateSymbol, int fflushFlag) {
+    char *string;
     int i = 0;
     int j = 1;
     int temp = 0;
-    if (fflushFlag == 1){
+    if (fflushFlag == 1) {
         fflush(pointer);
     }
-    string = (char*) malloc(sizeof(char));
-    while ((char)temp != SeparateSymbol){
-        temp =getc(pointer);
-        string = (char*) realloc(string,j++ * sizeof(char));
-        string[i] = (char)temp;
+    string = (char *) malloc(sizeof(char));
+    while ((char) temp != SeparateSymbol) {
+        temp = getc(pointer);
+        string = (char *) realloc(string, j++ * sizeof(char));
+        string[i] = (char) temp;
         i++;
     }
-    string[i-1]='\0';
+    string[i - 1] = '\0';
     return string;
 }
 
-void printString (char * string){
-    while (*string){
-        printf("%c",*string++);
+void printString(char *string) {
+    while (*string) {
+        printf("%c", *string++);
     }
     printf("\n");
 }
