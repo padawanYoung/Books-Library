@@ -200,6 +200,8 @@ void act_read_from_library() {
         currentState = SubMenu;
     }
     fclose(fptr);
+
+
 }
 
 void displayList() {
