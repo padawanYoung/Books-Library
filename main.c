@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <afxres.h>
 
 #define TABLE_SIZE 16
+
+#define BOOKS_QUANTITY 100
+#define TEST_ITERATIONS 10000
 
 typedef enum {
     EXIT = 0,
@@ -47,6 +51,8 @@ permissions permission;
 HashType hashIndex;
 HashType hash;
 
+HashType titlesHash[BOOKS_QUANTITY];
+
 void act_mainMenu();
 
 void act_subMenu();
@@ -87,10 +93,29 @@ void printString(char *string);
 
 void clearTable();
 
+void createRandBooksList();
+
+unsigned int randRange(unsigned int min, unsigned int max);
+
+char *randomCharField(int length);
+
+void bookDelInRandOrder();
+
+void wait(int seconds);
+
 int main() {
     setbuf(stdout, 0);
-
+    printf("Delay 5 sec\n");
+    wait(5);
     for (int j = 0; j < TABLE_SIZE; ++j) TABLE[j] = NULL;
+
+    for (int j = 0; j < TABLE_SIZE; ++j) {
+        TABLE[j] = NULL;
+    }
+    for (int i = 0; i <TEST_ITERATIONS ; ++i) {
+        createRandBooksList();
+        bookDelInRandOrder();
+    }
 
     void (*Action[6])();
     Action[createNew] = act_create_library;
@@ -292,8 +317,8 @@ void delete_book_from_list(Book **book, HashType hash) {
 
     if (selectedNode != NULL && selectedNode->hash == hash) {
         *book = selectedNode->next;
-        free(book);
-        book = NULL;
+        free(selectedNode);
+        selectedNode = NULL;
         return;
     }
     while (selectedNode != NULL && selectedNode->hash != hash) {
@@ -304,14 +329,8 @@ void delete_book_from_list(Book **book, HashType hash) {
         printf("Doesn't exist\n");
         return;
     }
-    if (selectedNode->next == NULL && selectedNode->hash == hash) {
-        prevNode = selectedNode->prev;
-        prevNode->next = NULL;
-    } else {
-        nextNode = selectedNode->next;
-        prevNode->next = nextNode;
-        nextNode->prev = prevNode;
-    }
+    prevNode->next=selectedNode->next;
+    prevNode->prev=selectedNode->prev;
     free(selectedNode);
     selectedNode = NULL;
 }
@@ -447,4 +466,122 @@ void printString(char *string) {
         printf("%c", *string++);
     }
     printf("\n");
+}
+unsigned int randRange(unsigned int min, unsigned int max) {
+    double scaled = (double) rand() / RAND_MAX;
+
+    return (unsigned int) ((max - min + 1) * scaled + min);
+}
+char *randomCharField(int length) {
+    char *string = NULL;
+    int temp;
+    int i = 0;
+    int j = 1;
+    string = (char *) malloc(length+1 *sizeof(char));
+    while (j <= length) {
+        temp = randRange('a', 'z');
+        string[i] = (char) temp;
+        i++;
+        j++;
+    }
+    string[i++] = '\0';
+    return string;
+}
+void createRandBooksList() {
+    int i = 1;
+    int j = 0;
+    Book *temp = NULL;
+    Book *p = NULL;
+//    printf ("Creating Library was started!\n");
+    while (i <= BOOKS_QUANTITY) {
+        temp = (Book *) malloc(sizeof(Book));
+        temp->date = (publishingDate *) malloc(sizeof(publishingDate));
+        temp->author = randomCharField(randRange(5, 12));
+        temp->title = randomCharField(randRange(5, 12));
+        temp->pagesQuantity = randRange(80, 999);
+        temp->date->month = randRange(1, 12);
+        temp->date->day = randRange(1, 31);
+        temp->date->year = randRange(1850, 2017);
+
+        temp->hash = Hash(temp->title);
+        titlesHash[j] = temp->hash;
+
+        hashIndex = HashIndex(temp->hash);
+
+        temp->next = NULL;
+        temp->prev = NULL;
+
+        if (TABLE[hashIndex] == NULL) {
+            TABLE[hashIndex] = temp;
+        } else {
+            p = TABLE[hashIndex];
+            while (p->next != NULL) {
+                p = p->next;
+            }
+            p->next = temp;
+            p->next->prev = p;
+        }
+        i++;
+        j++;
+    }
+}
+
+void bookDelInRandOrder() {
+    hashIndex = 0;
+    int Index = 0;
+    int prevIndex = 0;
+    int Done = 0;
+//    printf ("Delleting was started!\n");
+/*    for(int i = 0; i<100;i++){
+        if (i%2 == 1){
+            hash = titlesHash[i];
+            hashIndex = HashIndex(hash);
+            delete_book_from_list(&TABLE[hashIndex], hash);
+            titlesHash[i] = 0;
+        }
+    }
+    for(int j = 0; j<100;j++){
+        if (j%2 == 0){
+            hash = titlesHash[j];
+            hashIndex = HashIndex(hash);
+            delete_book_from_list(&TABLE[hashIndex], hash);
+            titlesHash[j] = 0;
+        }
+    }*/
+    for (int j = 0; j < BOOKS_QUANTITY ; ++j) {
+        Done = 0;
+        Index = randRange(0, BOOKS_QUANTITY - 1);
+        prevIndex = Index;
+        while (Done == 0) {
+            while (titlesHash[Index] == 0) {
+                if (Index++ == BOOKS_QUANTITY) {
+                    for (int i = 0; i <= prevIndex; ++i) {
+                        if (i == prevIndex) {
+                            Done = 1;
+                        }
+                        if (titlesHash[i] != 0) {
+                            Index = i;
+                            break;
+                        }
+                    }
+                }
+                if (Done == 1) break;
+            }
+            if (Done == 0) {
+                hash = titlesHash[Index];
+                hashIndex = HashIndex(hash);
+                delete_book_from_list(&TABLE[hashIndex], hash);
+                titlesHash[Index] = 0;
+                Done = 1;
+            }
+        }
+    }
+}
+
+void wait(int seconds) {   // Pretty crossplatform, both ALL POSIX compliant systems AND Windows
+#ifdef _WIN32
+    Sleep(1000 * seconds);
+#else
+    sleep( seconds );
+#endif
 }
