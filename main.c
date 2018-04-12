@@ -95,7 +95,6 @@ void clearTable();
 
 void createRandBooksList();
 
-
 unsigned int randRange(unsigned int min, unsigned int max);
 
 char *randomCharField(int length);
