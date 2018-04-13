@@ -112,10 +112,10 @@ int main() {
     for (int j = 0; j < TABLE_SIZE; ++j) {
         TABLE[j] = NULL;
     }
-    for (int i = 0; i <TEST_ITERATIONS ; ++i) {
+    for (int i = 0; i < TEST_ITERATIONS; ++i) {
         createRandBooksList();
         bookDelInRandOrder();
-        printf("%d\n",i+1);
+        printf("%d\n", i + 1);
     }
 
     void (*Action[6])();
@@ -165,7 +165,7 @@ void act_create_library() {
     fclose(fptr);
     fptr = NULL;
     printf("\nFile BooksLibrary.txt was created\n"
-                   "Would you like to add few books to new library? y/n\n");
+           "Would you like to add few books to new library? y/n\n");
     scanf("%s", &permission);
     if (permission == yes) {
         permission = z_state;
@@ -282,7 +282,7 @@ void createBooksList() {
         temp = (Book *) malloc(sizeof(Book));
         temp->date = (publishingDate *) malloc(sizeof(publishingDate));
         printf("Enter the data for Book's number: %d\n"
-                       "\tAuthor: ", i++);
+               "\tAuthor: ", i++);
         temp->author = ReadStringFromInputStream(stdin, '\n', 1);
         printf("\tTitle: ");
         temp->title = ReadStringFromInputStream(stdin, '\n', 1);
@@ -327,7 +327,6 @@ void delete_book_from_list(Book **book, HashType hash) {
         selectedNode = NULL;
         return;
     }
-
     while (selectedNode != NULL && selectedNode->hash != hash) {
         prevNode = selectedNode;
         selectedNode = selectedNode->next;
@@ -336,8 +335,8 @@ void delete_book_from_list(Book **book, HashType hash) {
         printf("Doesn't exist\n");
         return;
     }
-    prevNode->next=selectedNode->next;
-    prevNode->prev=selectedNode->prev;
+    prevNode->next = selectedNode->next;
+    prevNode->prev = selectedNode->prev;
 
     free(selectedNode->author);
     free(selectedNode->title);
@@ -478,17 +477,19 @@ void printString(char *string) {
     }
     printf("\n");
 }
+
 unsigned int randRange(unsigned int min, unsigned int max) {
     double scaled = (double) rand() / RAND_MAX;
 
     return (unsigned int) ((max - min + 1) * scaled + min);
 }
+
 char *randomCharField(int length) {
     char *string = NULL;
     int temp;
     int i = 0;
     int j = 1;
-    string = (char *) malloc(length+1 *sizeof(char));
+    string = (char *) malloc(length + 1 * sizeof(char));
     while (j <= length) {
         temp = randRange('a', 'z');
         string[i] = (char) temp;
@@ -498,6 +499,7 @@ char *randomCharField(int length) {
     string[i++] = '\0';
     return string;
 }
+
 void createRandBooksList() {
     int i = 1;
     int j = 0;
@@ -559,7 +561,7 @@ void bookDelInRandOrder() {
             titlesHash[j] = 0;
         }
     }*/
-    for (int j = 0; j < BOOKS_QUANTITY ; ++j) {
+    for (int j = 0; j < BOOKS_QUANTITY; ++j) {
         Done = 0;
         Index = randRange(0, BOOKS_QUANTITY - 1);
         prevIndex = Index;
