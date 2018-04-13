@@ -105,8 +105,8 @@ void wait(int seconds);
 
 int main() {
     setbuf(stdout, 0);
-    printf("Delay 5 sec\n");
-    wait(5);
+    printf("Delay 10 sec, then test will started\n");
+    wait(10);
     for (int j = 0; j < TABLE_SIZE; ++j) TABLE[j] = NULL;
 
     for (int j = 0; j < TABLE_SIZE; ++j) {
