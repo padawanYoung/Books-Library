@@ -327,6 +327,7 @@ void delete_book_from_list(Book **book, HashType hash) {
         selectedNode = NULL;
         return;
     }
+
     while (selectedNode != NULL && selectedNode->hash != hash) {
         prevNode = selectedNode;
         selectedNode = selectedNode->next;
