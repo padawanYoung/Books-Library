@@ -115,6 +115,7 @@ int main() {
     for (int i = 0; i <TEST_ITERATIONS ; ++i) {
         createRandBooksList();
         bookDelInRandOrder();
+        printf("%d\n",i+1);
     }
 
     void (*Action[6])();
@@ -314,11 +315,14 @@ void createBooksList() {
 
 void delete_book_from_list(Book **book, HashType hash) {
     Book *prevNode = NULL;
-    Book *nextNode = NULL;
     Book *selectedNode = *book;
 
     if (selectedNode != NULL && selectedNode->hash == hash) {
         *book = selectedNode->next;
+
+        free(selectedNode->author);
+        free(selectedNode->title);
+        free(selectedNode->date);
         free(selectedNode);
         selectedNode = NULL;
         return;
@@ -333,6 +337,10 @@ void delete_book_from_list(Book **book, HashType hash) {
     }
     prevNode->next=selectedNode->next;
     prevNode->prev=selectedNode->prev;
+
+    free(selectedNode->author);
+    free(selectedNode->title);
+    free(selectedNode->date);
     free(selectedNode);
     selectedNode = NULL;
 }
