@@ -74,11 +74,12 @@ HashType HashIndex(HashType hash) {
 }
 ```
 
-# Finite-state machine
+# Finite-state machine abstraction
 
-
+Using enumerations defines all possible states.
 
 ```cpp
+// Defining Machine's state
 typedef enum {
     EXIT = 0,
     createNew = 1,
@@ -90,4 +91,42 @@ typedef enum {
     SubMenu = -2,
     idle_state = -1
 } finite_Machine_states;
+
+// Creating variable which stores current state
+finite_Machine_states currentState;
 ```
+## Initialization and execution:
+
+```cpp
+int main(){
+/* ..... */
+ void (*Action[6])();
+    Action[createNew] = act_create_library;  // Prompt to add books -> fill a table -> edit the table -> writting to FILE
+    Action[read] = act_read_from_library;    // Reading from FILE  -> fill a table -> edit the table -> writing to FILE
+    Action[add] = act_book_add;              // Add a book to the table
+    Action[del] = act_book_del;              // Delete a book on the HASH key
+    Action[find] = act_book_find;            // Find a book on the HASH key
+    Action[Main] = act_mainMenu;             // Show main menu
+
+    currentState = idle_state;               // Stetting current machine state
+   
+    while (1) {                              // Execution the programm
+        if (currentState == idle_state) {
+            act_mainMenu();
+            scanf("%d", &currentState);
+            (*Action[currentState])();
+        }
+        if (currentState == SubMenu) {
+            act_subMenu();
+            scanf("%d", &currentState);
+            (*Action[currentState])();
+        }
+        if (currentState == EXIT) {
+            break;
+        }
+    }
+    /* ..... */
+    retutn 0;
+}
+```
+
