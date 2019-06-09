@@ -97,6 +97,8 @@ finite_Machine_states currentState;
 ```
 ## Initialization and execution:
 
+In this program, the finite state machine is represented as an array of pointers to functions. The dimension of the array depends on the number of possible states.
+
 ```cpp
 int main(){
 /* ..... */
