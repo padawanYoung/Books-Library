@@ -98,6 +98,9 @@ finite_Machine_states currentState;
 ## Initialization and execution:
 
 In this program, the finite state machine is represented as an array of pointers to functions. The dimension of the array depends on the number of possible states.
+In order to assign some functionality to the state of the machine, it is necessary to write a pointer to the function in the array cell, with the corresponding index.
+After the initialization stage, the initial state of the machine (IDLE state) is assigned so that the user can call the function necessary for execution.
+This program runs continuously. The program offers to select a specific set of functions depending on the current state of the finite state machine. After the program performs the function requested by the user, it returns the state machine to the IDLE state and offers a set of functions available for execution.
 
 ```cpp
 int main(){
